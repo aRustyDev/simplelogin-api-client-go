@@ -1,0 +1,59 @@
+# TODO: Verify Readme links
+# TODO: Verify Local Assets (SVG, PUML, PNG, etc.)
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+  - id: trailing-whitespace
+  - id: mixed-line-ending
+  - id: check-byte-order-marker
+  - id: fix-byte-order-marker
+  - id: check-case-conflict
+  - id: check-added-large-files
+  - id: check-docstring-first
+  - id: check-executables-have-shebangs
+  - id: pretty-format-json
+  - id: check-shebang-scripts-are-executable
+  - id: check-merge-conflict
+  - id: check-symlinks
+  - id: check-json
+  - id: check-toml
+  - id: check-xml
+  - id: check-yaml
+  - id: check-vcs-permalinks
+  - id: destroyed-symlinks
+  # - id: detect-private-key # TODO: allow for Regex validations
+  - id: detect-aws-credentials
+  - id: end-of-file-fixer
+  - id: forbid-new-submodules
+  - id: forbid-submodules
+  - id: sort-simple-yaml
+  - id: file-contents-sorter
+  # - id: check-illegal-windows-names # Not available in v4.6.0; still not public release yet
+- repo: https://github.com/dnephin/pre-commit-golang
+  rev: v0.5.1
+  hooks:
+    - id: go-fmt
+    # - id: go-vet
+    # - id: go-lint
+    - id: go-imports
+    - id: go-cyclo
+      args: [-over=15]
+    - id: validate-toml
+    - id: no-go-testing
+    # - id: golangci-lint
+    - id: go-critic
+    # - id: go-unit-tests
+    # - id: go-build
+    - id: go-mod-tidy
+- repo: https://github.com/gitguardian/ggshield
+  rev: v1.29.0
+  hooks:
+    - id: ggshield
+      language_version: python3
+      stages: [commit]
+      entry: /usr/bin/env bash -c 'op run --env-file="./op.env" ggshield secret scan pre-commit'
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.16.1
+  hooks:
+    - id: gitleaks
