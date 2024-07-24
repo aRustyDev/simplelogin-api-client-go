@@ -1,12 +1,11 @@
 package simplelogin_api_client_go
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"time"
-)
-
-const (
-	BaseURLV1 = "https://app.simplelogin.io"
 )
 
 type Client struct {
@@ -17,7 +16,7 @@ type Client struct {
 
 type AuthBundle struct {
 	BaseURL string
-	apiKey  string
+	ApiKey  string
 }
 
 type errorResponse struct {
@@ -33,9 +32,40 @@ type successResponse struct {
 func NewClient(auth AuthBundle) *Client {
 	return &Client{
 		BaseURL: auth.BaseURL,
-		apiKey:  auth.apiKey,
+		apiKey:  auth.ApiKey,
 		HTTPClient: &http.Client{
 			Timeout: time.Minute,
 		},
 	}
+}
+
+func (c *Client) NewRequest(req *http.Request, v interface{}) error {
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	req.Header.Set("Accept", "application/json; charset=utf-8")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
+
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
+		var errRes errorResponse
+		if err = json.NewDecoder(res.Body).Decode(&errRes); err == nil {
+			return errors.New(errRes.Message)
+		}
+
+		return fmt.Errorf("unknown error, status code: %d", res.StatusCode)
+	}
+
+	fullResponse := successResponse{
+		Data: v,
+	}
+	if err = json.NewDecoder(res.Body).Decode(&fullResponse); err != nil {
+		return err
+	}
+
+	return nil
 }
