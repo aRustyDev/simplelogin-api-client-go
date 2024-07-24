@@ -44,7 +44,7 @@ repos:
     # - id: golangci-lint
     - id: go-critic
     # - id: go-unit-tests
-    # - id: go-build
+    - id: go-build
     - id: go-mod-tidy
 - repo: https://github.com/gitguardian/ggshield
   rev: v1.29.0

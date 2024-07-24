@@ -9,14 +9,20 @@ import (
 )
 
 type Client struct {
-	BaseURL    string
-	apiKey     string
+	Auth       AuthBundle
 	HTTPClient *http.Client
 }
 
 type AuthBundle struct {
-	BaseURL string
-	ApiKey  string
+	BaseURL       string
+	ApiKey        string
+	Email         string
+	Password      string
+	MfaToken      string
+	MfaKey        string
+	FacebookToken string
+	GoogleToken   string
+	Code          string
 }
 
 type errorResponse struct {
@@ -31,8 +37,7 @@ type successResponse struct {
 
 func NewClient(auth AuthBundle) *Client {
 	return &Client{
-		BaseURL: auth.BaseURL,
-		apiKey:  auth.ApiKey,
+		Auth: auth,
 		HTTPClient: &http.Client{
 			Timeout: time.Minute,
 		},
@@ -42,7 +47,7 @@ func NewClient(auth AuthBundle) *Client {
 func (c *Client) NewRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Auth.ApiKey))
 
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {

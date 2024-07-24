@@ -8,19 +8,20 @@ import (
 )
 
 type AccountOptions struct {
-	Limit int `json:"limit"`
-	Page  int `json:"page"`
+	Device         string `json:"device"`
+	ProfilePicture string `json:"profile_picture"`
+	Name           string `json:"name"`
 }
 
 // POST /api/auth/login: Authentication
 func (c *Client) PostLogin(ctx context.Context, options *AccountOptions) (*AuthBundle, error) {
 
 	// Set the variables for the request
-	path := path.Join(c.BaseURL, "/api/auth/login")
+	path := path.Join(c.Auth.BaseURL, "/api/auth/login")
 	res := AuthBundle{}
 
 	// Create a new request object
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/%s", c.BaseURL, path), nil)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/%s", c.Auth.BaseURL, path), nil)
 	if err != nil {
 		return nil, err
 	}

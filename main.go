@@ -60,14 +60,29 @@ func main() {
 				Name:    "login",
 				Aliases: []string{"li"},
 				Usage:   "Login to the SimpleLogin via the API; returns an API key",
-				// Flags: []cli.Flag{
-				//     &cli.StringFlag{
-				//         Name:    "config",
-				//         Aliases: []string{"c"},
-				//         Usage:   "Load configuration from `FILE`",
-				//     },
-				// },
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "email",
+						Aliases:     []string{"e"},
+						Usage:       "User Email",
+						Destination: &auth.Email,
+					},
+					&cli.StringFlag{
+						Name:        "password",
+						Aliases:     []string{"p"},
+						Usage:       "User Password",
+						Destination: &auth.Password,
+					},
+				},
 				Action: func(cCtx *cli.Context) error {
+					hostname, err := os.Hostname()
+					if err != nil {
+						log.Fatal(err)
+					}
+					ctx := context.TODO()
+					c := sl.NewClient(auth)
+					c.PostLogin(ctx, &sl.AccountOptions{Device: fmt.Sprintf("slapi-%s", hostname)})
+
 					fmt.Println("added task: ", cCtx.Args().First())
 					return nil
 				},
