@@ -17,42 +17,6 @@ const (
 	BaseURLV1 = "https://app.simplelogin.io"
 )
 
-func SetLogLevel(level string) {
-	switch level {
-	case "trace":
-		zerolog.SetGlobalLevel(zerolog.TraceLevel)
-	case "debug":
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	case "info":
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	case "warn":
-		zerolog.SetGlobalLevel(zerolog.WarnLevel)
-	case "error":
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-	default:
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	}
-}
-
-func HandleError(err error, lvl zerolog.Level, msg string) {
-	if err == nil {
-		switch lvl {
-		case zerolog.PanicLevel:
-			log.Panic().Err(err).Msg(msg)
-		case zerolog.FatalLevel:
-			log.Fatal().Err(err).Msg(msg)
-		case zerolog.ErrorLevel:
-			log.Error().Err(err).Msg(msg)
-		case zerolog.WarnLevel:
-			log.Warn().Err(err).Msg(msg)
-		default:
-			log.Info().Err(err).Msg(msg)
-			log.Debug().Stack().Err(err).Msg(msg)
-			log.Trace().Stack().Err(err).Msg(msg)
-		}
-	}
-}
-
 func main() {
 	// UNIX Time is faster and smaller than most timestamps
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -99,7 +63,7 @@ func main() {
 		},
 		// Define Action for App w/o subcommands
 		Action: func(cCtx *cli.Context) error {
-			SetLogLevel(logLevel)
+			sl.SetLogLevel(logLevel)
 			ctx := context.TODO()
 			c := sl.NewClient(auth)
 			log.Info().Msg("Running PostLogin")
@@ -138,19 +102,26 @@ func main() {
 						Required:    false,
 						Destination: &auth.ApiKey,
 					},
+					&cli.StringFlag{
+						Name:        "LogLevel",
+						Aliases:     []string{"l"},
+						Value:       "info",
+						Usage:       "Set the logging level (debug, info, warn, error)",
+						Destination: &logLevel,
+					},
 				},
 				Action: func(cCtx *cli.Context) error {
-					SetLogLevel(logLevel)
+					sl.SetLogLevel(logLevel)
 					if auth.Email == "" {
 						if auth.Password == "" {
 							if auth.ApiKey == "" {
 								err := errors.New("(Email+Password) || (API Key) is required")
-								HandleError(err, zerolog.FatalLevel, "No credentials provided")
+								sl.HandleError(err, zerolog.FatalLevel, "No credentials provided")
 							}
 						}
 					}
 					hostname, err := os.Hostname()
-					HandleError(err, zerolog.ErrorLevel, "Failed to get hostname")
+					sl.HandleError(err, zerolog.ErrorLevel, "Failed to get hostname")
 					ctx := context.TODO()
 					c := sl.NewClient(auth)
 					// a, err := c.PostLogin(ctx, &sl.AccountOptions{Device: fmt.Sprintf("slapi-%s", hostname)})
@@ -159,8 +130,7 @@ func main() {
 					// }
 					// fmt.Printf("%+v\n", a)
 					userInfo, err := c.GetUserInfo(ctx, &sl.AccountOptions{Device: fmt.Sprintf("slapi-%s", hostname)})
-					HandleError(err, zerolog.ErrorLevel, "GetUserInfo failed")
-					fmt.Printf("Result: %+v\n", userInfo) // TODO: Remove this line
+					sl.HandleError(err, zerolog.ErrorLevel, "GetUserInfo failed")
 
 					fmt.Println("added task: ", userInfo)
 					return nil
@@ -170,5 +140,5 @@ func main() {
 	}
 
 	err := app.Run(os.Args)
-	HandleError(err, zerolog.ErrorLevel, "SLAPI failed to run")
+	sl.HandleError(err, zerolog.ErrorLevel, "SLAPI failed to run")
 }

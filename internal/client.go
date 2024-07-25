@@ -2,11 +2,13 @@ package simplelogin_api_client_go
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type Client struct {
@@ -31,14 +33,16 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
-type successResponse struct {
-	Code int         `json:"code"`
-	Data interface{} `json:"data"`
-}
-
 type OutputOptions interface {
 	AccountOptions
 	AliasOptions
+	ContactOptions
+	DomainOptions
+	MailboxOptions
+	MiscOptions
+	NotificationOptions
+	PhoneOptions
+	SettingOptions
 }
 
 func NewClient(auth AuthBundle) *Client {
@@ -56,39 +60,37 @@ func (c *Client) NewRequest(req *http.Request, result any) error {
 	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	// req.Header.Set("Accept", "*/*")
 	// req.Header.Set("Connection", "Keep-Alive")
-	// req.Header.Set("Accept-Encoding", "gzip, deflate, br")
-	// req.Header.Set("User-Agent", "PostmanRuntime/7.40.0")
-	// req.Header.Set("Cookie", "slapp=a7bd211f-45c6-410b-bcec-a8f36cd6097d.tcVYAUskb9y2IW4SHeD1YnlZGPE")
+
+	log.Debug().Msg(fmt.Sprintf("URL: %+v\n", req.URL))
+	log.Debug().Msg(fmt.Sprintf("Headers: %+v\n", req.Header))
 
 	// Make the request
 	response, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return err
-	}
+	HandleError(err, zerolog.ErrorLevel, "Failed to make request")
+	log.Debug().Msg(fmt.Sprintf("StatusCode: %+v\n", response.StatusCode))
 
 	// Close the response body when the function returns
 	defer response.Body.Close()
 
+	// TODO: review this to see if we can remove it? (do we need the errorResponse struct?)
 	// If the status code is not in the 200 range, return an error
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusBadRequest {
 		var errRes errorResponse
 		// Decode the response body into the errorResponse struct
-		if err = json.NewDecoder(response.Body).Decode(&errRes); err == nil {
-			return errors.New(errRes.Message)
-		}
+		err = json.NewDecoder(response.Body).Decode(&errRes)
+		HandleError(err, zerolog.FatalLevel, errRes.Message)
 
-		return fmt.Errorf("unknown error, status code: %d", response.StatusCode)
+		HandleError(err, zerolog.FatalLevel, fmt.Sprintf("unknown error, status code: %d", response.StatusCode))
 	}
 
 	// Read the Body of the response & parse it into the 'result' Object
 	body, err := io.ReadAll(response.Body) // response body is []byte
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-		fmt.Println("Can not unmarshal JSON")
-		fmt.Println(err)
-	}
+	HandleError(err, zerolog.FatalLevel, "Failed to make request")
+
+	// Parse []byte to go struct pointer
+	err = json.Unmarshal(body, &result)
+	HandleError(err, zerolog.FatalLevel, "Can not unmarshal JSON")
+	log.Debug().Msg(fmt.Sprintf("Result: %+v\n", result))
 
 	return nil
 }
