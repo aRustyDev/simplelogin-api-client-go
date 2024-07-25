@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+type Account interface {
+	GetUserInfo() (*UserInfo, error)
+}
+
 type AccountOptions struct {
 	Device         string `json:"device"`
 	ProfilePicture string `json:"profile_picture"`
@@ -27,20 +31,20 @@ type CookieToken struct {
 	Token string `json:"token"`
 }
 
-// POST /api/auth/login: Authentication
+// POST /api/auth/login: Authentication.
 func (c *Client) PostLogin(ctx context.Context, options *AccountOptions) (*AuthBundle, error) {
 
-	// Set the variables for the request
+	// Set the variables for the request.
 	reqType := "POST"
 	path := fmt.Sprintf("%s%s", c.Auth.BaseURL, "/api/auth/login")
 
-	// Create a new request object
+	// Create a new request object.
 	req, err := http.NewRequest(reqType, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Add the context to the request
+	// Add the context to the request.
 	req = req.WithContext(ctx)
 
 	req.Header.Set("email", "")
@@ -48,7 +52,7 @@ func (c *Client) PostLogin(ctx context.Context, options *AccountOptions) (*AuthB
 	req.Header.Set("device", options.Device)
 	fmt.Println(req.Header)
 
-	// Make the request
+	// Make the request.
 	if err := c.NewRequest(req, &c.Auth); err != nil {
 		return nil, err
 	}
@@ -56,7 +60,7 @@ func (c *Client) PostLogin(ctx context.Context, options *AccountOptions) (*AuthB
 	return &c.Auth, nil
 }
 
-// POST /api/auth/mfa: 2FA authentication
+// POST /api/auth/mfa: 2FA authentication.
 func (c *Client) PostMFA(ctx context.Context, options *AccountOptions) (*Client, error) {
 	return nil, nil
 }
@@ -104,24 +108,24 @@ func (c *Client) DeleteUser(ctx context.Context, options *AccountOptions) (*Clie
 // GET /api/user_info: Get user's information.
 func (c *Client) GetUserInfo(ctx context.Context, options *AccountOptions) (*UserInfo, error) {
 
-	// Set the variables for the request
+	// Set the variables for the request.
 	reqType := "GET"
 	path := fmt.Sprintf("%s%s", c.Auth.BaseURL, "/api/user_info")
 	ui := UserInfo{}
 
-	// Create a new request object
+	// Create a new request object.
 	req, err := http.NewRequest(reqType, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Add the context to the request
+	// Add the context to the request.
 	req = req.WithContext(ctx)
 
-	// Set Request Headers
+	// Set Request Headers.
 	req.Header.Set("Authentication", c.Auth.ApiKey)
 
-	// Make the request
+	// Make the request.
 	if err := c.NewRequest(req, &ui); err != nil {
 		return nil, err
 	}
@@ -129,27 +133,27 @@ func (c *Client) GetUserInfo(ctx context.Context, options *AccountOptions) (*Use
 	return &ui, nil
 }
 
-// GET /api/user/cookie_token: Get a one time use token to exchange it for a valid cookie
+// GET /api/user/cookie_token: Get a one time use token to exchange it for a valid cookie.
 func (c *Client) GetCookie(ctx context.Context, options *AccountOptions) (*Client, error) {
 
-	// Set the variables for the request
+	// Set the variables for the request.
 	reqType := "GET"
 	path := fmt.Sprintf("%s%s", c.Auth.BaseURL, "/api/user/cookie_token")
 	ui := CookieToken{}
 
-	// Create a new request object
+	// Create a new request object.
 	req, err := http.NewRequest(reqType, path, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Add the context to the request
+	// Add the context to the request.
 	req = req.WithContext(ctx)
 
-	// Set Request Headers
+	// Set Request Headers.
 	req.Header.Set("Authentication", c.Auth.ApiKey)
 
-	// Make the request
+	// Make the request.
 	if err := c.NewRequest(req, &ui); err != nil {
 		return nil, err
 	}

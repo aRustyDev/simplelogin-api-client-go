@@ -33,18 +33,6 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
-type OutputOptions interface {
-	AccountOptions
-	AliasOptions
-	ContactOptions
-	DomainOptions
-	MailboxOptions
-	MiscOptions
-	NotificationOptions
-	PhoneOptions
-	SettingOptions
-}
-
 func NewClient(auth AuthBundle) *Client {
 	return &Client{
 		Auth: auth,
@@ -54,9 +42,9 @@ func NewClient(auth AuthBundle) *Client {
 	}
 }
 
-// TODO: scope 'result' to a specific type; implement some kind of enum for the structs
+// TODO: scope 'result' to a specific type; implement some kind of enum for the structs.
 func (c *Client) NewRequest(req *http.Request, result any) error {
-	// Set common headers for requests
+	// Set common headers for requests.
 	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	// req.Header.Set("Accept", "*/*")
 	// req.Header.Set("Connection", "Keep-Alive")
@@ -64,30 +52,30 @@ func (c *Client) NewRequest(req *http.Request, result any) error {
 	log.Debug().Msg(fmt.Sprintf("URL: %+v\n", req.URL))
 	log.Debug().Msg(fmt.Sprintf("Headers: %+v\n", req.Header))
 
-	// Make the request
+	// Make the request.
 	response, err := c.HTTPClient.Do(req)
 	HandleError(err, zerolog.ErrorLevel, "Failed to make request")
 	log.Debug().Msg(fmt.Sprintf("StatusCode: %+v\n", response.StatusCode))
 
-	// Close the response body when the function returns
+	// Close the response body when the function returns.
 	defer response.Body.Close()
 
-	// TODO: review this to see if we can remove it? (do we need the errorResponse struct?)
-	// If the status code is not in the 200 range, return an error
+	// TODO: review this to see if we can remove it? (do we need the errorResponse struct?).
+	// If the status code is not in the 200 range, return an error.
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusBadRequest {
 		var errRes errorResponse
-		// Decode the response body into the errorResponse struct
+		// Decode the response body into the errorResponse struct.
 		err = json.NewDecoder(response.Body).Decode(&errRes)
 		HandleError(err, zerolog.FatalLevel, errRes.Message)
 
 		HandleError(err, zerolog.FatalLevel, fmt.Sprintf("unknown error, status code: %d", response.StatusCode))
 	}
 
-	// Read the Body of the response & parse it into the 'result' Object
-	body, err := io.ReadAll(response.Body) // response body is []byte
+	// Read the Body of the response & parse it into the 'result' Object.
+	body, err := io.ReadAll(response.Body) // response body is []byte.
 	HandleError(err, zerolog.FatalLevel, "Failed to make request")
 
-	// Parse []byte to go struct pointer
+	// Parse []byte to go struct pointer.
 	err = json.Unmarshal(body, &result)
 	HandleError(err, zerolog.FatalLevel, "Can not unmarshal JSON")
 	log.Debug().Msg(fmt.Sprintf("Result: %+v\n", result))

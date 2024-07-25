@@ -33,15 +33,14 @@ repos:
   rev: v0.5.1
   hooks:
     - id: go-fmt
-    # - id: go-vet
-    - id: go-lint
-      files: ^.*\.go$
+    - id: go-vet
+    # - id: go-lint
     - id: go-imports
     - id: go-cyclo
       args: [-over=15]
     - id: validate-toml
     - id: no-go-testing
-    # - id: golangci-lint
+    - id: golangci-lint
     - id: go-critic
     # - id: go-unit-tests
     - id: go-build
@@ -54,6 +53,6 @@ repos:
       stages: [commit]
       entry: /usr/bin/env bash -c 'op run --env-file="./op.env" ggshield secret scan pre-commit'
 - repo: https://github.com/gitleaks/gitleaks
-  rev: v8.16.1
+  rev: v8.18.4
   hooks:
     - id: gitleaks

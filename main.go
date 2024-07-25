@@ -18,16 +18,16 @@ const (
 )
 
 func main() {
-	// UNIX Time is faster and smaller than most timestamps
+	// UNIX Time is faster and smaller than most timestamps.
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	// Default level for this example is info, unless debug flag is present
+	// Default level for this example is info, unless debug flag is present.
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
-	// Define AuthBundle Object
+	// Define AuthBundle Object.
 	var auth sl.AuthBundle
 	var logLevel string
 
-	// Define CLI App
+	// Define CLI App.
 	cli.VersionFlag = &cli.BoolFlag{
 		Name:    "version",
 		Aliases: []string{"V", "v"},
@@ -38,7 +38,7 @@ func main() {
 		Usage:   "Interact with the SimpleLogin API",
 		Version: "v0.1.0",
 		Flags: []cli.Flag{
-			// Fill AuthBundle Object w/ flags/default values
+			// Fill AuthBundle Object w/ flags/default values.
 			&cli.StringFlag{
 				Name:        "ApiKey",
 				Aliases:     []string{"k"},
@@ -61,23 +61,25 @@ func main() {
 				Destination: &logLevel,
 			},
 		},
-		// Define Action for App w/o subcommands
+		// Define Action for App w/o subcommands.
 		Action: func(cCtx *cli.Context) error {
 			sl.SetLogLevel(logLevel)
 			ctx := context.TODO()
 			c := sl.NewClient(auth)
 			log.Info().Msg("Running PostLogin")
-			c.PostLogin(ctx, &sl.AccountOptions{})
+			auth, err := c.PostLogin(ctx, &sl.AccountOptions{})
+			sl.HandleError(err, zerolog.ErrorLevel, "PostLogin failed")
+			log.Debug().Msg(auth.ApiKey)
 
 			return nil
 		},
-		// Define Subcommands for App
+		// Define Subcommands for App.
 		Commands: []*cli.Command{
 			{
 				Name:    "login",
 				Aliases: []string{"li"},
 				Usage:   "Login to the SimpleLogin via the API; returns an API key",
-				Flags: []cli.Flag{ // Define Flags for 'Login' Subcommand
+				Flags: []cli.Flag{ // Define Flags for 'Login' Subcommand.
 					&cli.StringFlag{
 						Name:        "email",
 						Aliases:     []string{"e"},
@@ -124,11 +126,6 @@ func main() {
 					sl.HandleError(err, zerolog.ErrorLevel, "Failed to get hostname")
 					ctx := context.TODO()
 					c := sl.NewClient(auth)
-					// a, err := c.PostLogin(ctx, &sl.AccountOptions{Device: fmt.Sprintf("slapi-%s", hostname)})
-					// if err != nil {
-					// 	fmt.Println(err)
-					// }
-					// fmt.Printf("%+v\n", a)
 					userInfo, err := c.GetUserInfo(ctx, &sl.AccountOptions{Device: fmt.Sprintf("slapi-%s", hostname)})
 					sl.HandleError(err, zerolog.ErrorLevel, "GetUserInfo failed")
 
