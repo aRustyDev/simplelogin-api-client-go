@@ -10,6 +10,7 @@ else
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
     go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
     go install golang.org/x/tools/cmd/goimports@latest
+    go get -u github.com/rs/zerolog/log
 fi
 
 # Install pre-commit hooks

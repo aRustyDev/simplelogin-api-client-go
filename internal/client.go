@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -35,6 +36,11 @@ type successResponse struct {
 	Data interface{} `json:"data"`
 }
 
+type OutputOptions interface {
+	AccountOptions
+	AliasOptions
+}
+
 func NewClient(auth AuthBundle) *Client {
 	return &Client{
 		Auth: auth,
@@ -44,32 +50,44 @@ func NewClient(auth AuthBundle) *Client {
 	}
 }
 
-func (c *Client) NewRequest(req *http.Request, v interface{}) error {
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Auth.ApiKey))
+// TODO: scope 'result' to a specific type; implement some kind of enum for the structs
+func (c *Client) NewRequest(req *http.Request, result any) error {
+	// Set common headers for requests
+	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	// req.Header.Set("Accept", "*/*")
+	// req.Header.Set("Connection", "Keep-Alive")
+	// req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	// req.Header.Set("User-Agent", "PostmanRuntime/7.40.0")
+	// req.Header.Set("Cookie", "slapp=a7bd211f-45c6-410b-bcec-a8f36cd6097d.tcVYAUskb9y2IW4SHeD1YnlZGPE")
 
-	res, err := c.HTTPClient.Do(req)
+	// Make the request
+	response, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
 
-	defer res.Body.Close()
+	// Close the response body when the function returns
+	defer response.Body.Close()
 
-	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
+	// If the status code is not in the 200 range, return an error
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusBadRequest {
 		var errRes errorResponse
-		if err = json.NewDecoder(res.Body).Decode(&errRes); err == nil {
+		// Decode the response body into the errorResponse struct
+		if err = json.NewDecoder(response.Body).Decode(&errRes); err == nil {
 			return errors.New(errRes.Message)
 		}
 
-		return fmt.Errorf("unknown error, status code: %d", res.StatusCode)
+		return fmt.Errorf("unknown error, status code: %d", response.StatusCode)
 	}
 
-	fullResponse := successResponse{
-		Data: v,
-	}
-	if err = json.NewDecoder(res.Body).Decode(&fullResponse); err != nil {
+	// Read the Body of the response & parse it into the 'result' Object
+	body, err := io.ReadAll(response.Body) // response body is []byte
+	if err != nil {
 		return err
+	}
+	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
+		fmt.Println("Can not unmarshal JSON")
+		fmt.Println(err)
 	}
 
 	return nil

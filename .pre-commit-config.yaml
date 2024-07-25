@@ -22,7 +22,6 @@ repos:
   - id: check-yaml
   - id: check-vcs-permalinks
   - id: destroyed-symlinks
-  # - id: detect-private-key # TODO: allow for Regex validations
   - id: detect-aws-credentials
   - id: end-of-file-fixer
   - id: forbid-new-submodules
