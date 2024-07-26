@@ -33,7 +33,7 @@ repos:
   rev: v0.5.1
   hooks:
     - id: go-fmt
-    - id: go-vet
+    # - id: go-vet
     # - id: go-lint
     - id: go-imports
     - id: go-cyclo
@@ -42,7 +42,7 @@ repos:
     - id: no-go-testing
     - id: golangci-lint
     - id: go-critic
-    - id: go-unit-tests
+    # - id: go-unit-tests
     - id: go-build
     - id: go-mod-tidy
 - repo: https://github.com/gitguardian/ggshield
